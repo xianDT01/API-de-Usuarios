@@ -12,7 +12,6 @@ Esta es una API RESTful diseñada para gestionar usuarios mediante operaciones C
   - Actualizar un usuario existente
   - Eliminar un usuario
 - **Validaciones**: Incluye validaciones en el modelo de datos para asegurar que los datos sean correctos antes de ser procesados.
-- **Documentación**: Integración con Swagger para documentación automática de la API.
 
 ## Tecnologías
 - ASP.NET Core
