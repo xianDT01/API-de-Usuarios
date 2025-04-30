@@ -2020,19 +2020,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Xian\\.nuget\\packages\\": {}
+    "/home/xiandt/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\Xian\\Desktop\\API-de-Usuarios\\WebApiCrud.csproj",
+      "projectUniqueName": "/home/xiandt/WorkSpace/API-de-Usuarios/WebApiCrud.csproj",
       "projectName": "WebApiCrud",
-      "projectPath": "c:\\Users\\Xian\\Desktop\\API-de-Usuarios\\WebApiCrud.csproj",
-      "packagesPath": "C:\\Users\\Xian\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\Xian\\Desktop\\API-de-Usuarios\\obj\\",
+      "projectPath": "/home/xiandt/WorkSpace/API-de-Usuarios/WebApiCrud.csproj",
+      "packagesPath": "/home/xiandt/.nuget/packages/",
+      "outputPath": "/home/xiandt/WorkSpace/API-de-Usuarios/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Xian\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/home/xiandt/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net7.0"
@@ -2111,7 +2111,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.201\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.408/RuntimeIdentifierGraph.json"
       }
     }
   }

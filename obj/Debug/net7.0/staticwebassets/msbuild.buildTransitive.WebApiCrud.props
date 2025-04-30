@@ -1,3 +1,3 @@
 ﻿<Project>
-  <Import Project="..\buildMultiTargeting\WebApiCrud.props" />
+  <Import Project="../buildMultiTargeting/WebApiCrud.props" />
 </Project>

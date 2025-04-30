@@ -1,18 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using WebApiCrud.Data; 
-using WebApiCrud.Models; 
+using WebApiCrud.Data;
+using WebApiCrud.Models;
 
 namespace WebApiCrud.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductosController : Controller
+    public class ProductosController : ControllerBase
     {
         private readonly ILogger<ProductosController> _logger;
         private readonly DataContext _context;
@@ -23,61 +19,96 @@ namespace WebApiCrud.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetProductos")]
-        public async Task<ActionResult<IEnumerable<Producto>>> GetProductos()
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ProductoDTO>>> GetProductos()
         {
-            return await _context.Productos.ToListAsync();
+            var productos = await _context.Productos.ToListAsync();
+
+            var productosDTO = productos.Select(p => new ProductoDTO
+            {
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                FechaDeAlta = p.FechaDeAlta,
+                Precio = p.Precio,
+                Activo = p.Activo
+            });
+
+            return Ok(productosDTO);
         }
 
-        [HttpGet("{id}", Name = "GetProducto")]
-        public async Task<ActionResult<Producto>> GetProducto(int id)
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProductoDTO>> GetProducto(int id)
         {
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
             {
                 return NotFound();
             }
-            return producto;
+
+            var productoDTO = new ProductoDTO
+            {
+                Nombre = producto.Nombre,
+                Descripcion = producto.Descripcion,
+                FechaDeAlta = producto.FechaDeAlta,
+                Precio = producto.Precio,
+                Activo = producto.Activo
+            };
+
+            return Ok(productoDTO);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Producto>> Post(Producto producto)
+        public async Task<ActionResult> PostProducto(ProductoCreateDTO dto)
         {
-            if (producto == null)
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var producto = new Producto
             {
-                return BadRequest("El producto es nulo.");
-            }
+                Nombre = dto.Nombre,
+                Descripcion = dto.Descripcion,
+                Precio = dto.Precio,
+                Activo = dto.Activo,
+                FechaDeAlta = DateTime.UtcNow
+            };
 
             _context.Productos.Add(producto);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetProducto), new { id = producto.Id }, producto);
+
+            return CreatedAtAction(nameof(GetProducto), new { id = producto.Id }, null);
         }
+
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> PutProducto(int id, Producto producto)
+        public async Task<ActionResult> PutProducto(int id, ProductoUpdateDTO dto)
         {
-            if (id != producto.Id)
-            {
-                return BadRequest("El ID del producto no coincide con el ID en la solicitud.");
-            }
+            if (id != dto.Id)
+                return BadRequest("El ID no coincide.");
 
+            var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
-            {
-                return BadRequest("El producto es nulo.");
-            }
+                return NotFound();
 
-            _context.Entry(producto).State = EntityState.Modified;
+            producto.Nombre = dto.Nombre ?? producto.Nombre;
+            producto.Descripcion = dto.Descripcion ?? producto.Descripcion;
+            producto.Precio = dto.Precio;
+            producto.Activo = dto.Activo;
+
             await _context.SaveChangesAsync();
-            return Ok();
+            return NoContent();
         }
 
+
+
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> DeleteProducto(int id)
         {
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
             {
-                return NotFound("No se encontró ningún producto con el ID proporcionado.");
+                return NotFound("No se encontró ningún producto con ese ID.");
             }
 
             _context.Productos.Remove(producto);

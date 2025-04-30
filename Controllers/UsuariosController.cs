@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiCrud.Data;
@@ -20,56 +16,87 @@ namespace WebApiCrud.Controllers
             _context = context;
         }
 
-        // GET: api/usuarios
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+        public async Task<ActionResult<IEnumerable<UsuarioDTO>>> GetUsuarios()
         {
-            return await _context.Usuarios.ToListAsync();
+            var usuarios = await _context.Usuarios.ToListAsync();
+
+            var usuariosDTO = usuarios.Select(u => new UsuarioDTO
+            {
+                Nombre = u.Nombre,
+                CorreoElectronico = u.CorreoElectronico,
+                FechaDeAlta = u.FechaDeAlta,
+                Activo = u.Activo
+            });
+
+            return Ok(usuariosDTO);
         }
 
-        // GET: api/usuarios/{id}
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> GetUsuario(int id)
+        public async Task<ActionResult<UsuarioDTO>> GetUsuario(int id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
+
             if (usuario == null)
             {
                 return NotFound();
             }
-            return usuario;
+
+            var usuarioDTO = new UsuarioDTO
+            {
+                Nombre = usuario.Nombre,
+                CorreoElectronico = usuario.CorreoElectronico,
+                FechaDeAlta = usuario.FechaDeAlta,
+                Activo = usuario.Activo
+            };
+
+            return Ok(usuarioDTO);
         }
 
-        // POST: api/usuarios
         [HttpPost]
-        public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
+        public async Task<ActionResult> PostUsuario(UsuarioCreateDTO dto)
         {
-            // Validación de modelo
             if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var usuario = new Usuario
             {
-                return BadRequest(ModelState); // Devuelve errores de validación
-            }
+                Nombre = dto.Nombre,
+                CorreoElectronico = dto.CorreoElectronico,
+                PasswordHash = dto.PasswordHash,
+                Activo = dto.Activo,
+                FechaDeAlta = DateTime.UtcNow
+            };
 
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.Id }, usuario);
+
+            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.Id }, null);
         }
 
 
-        // PUT: api/usuarios/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(int id, Usuario usuario)
-        {
-            if (id != usuario.Id)
-            {
-                return BadRequest();
-            }
 
-            _context.Entry(usuario).State = EntityState.Modified;
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutUsuario(int id, UsuarioUpdateDTO dto)
+        {
+            if (id != dto.Id)
+                return BadRequest("El ID no coincide.");
+
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
+                return NotFound();
+
+            usuario.Nombre = dto.Nombre ?? usuario.Nombre;
+            usuario.CorreoElectronico = dto.CorreoElectronico ?? usuario.CorreoElectronico;
+            usuario.Activo = dto.Activo;
+
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
-        // DELETE: api/usuarios/{id}
+
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
