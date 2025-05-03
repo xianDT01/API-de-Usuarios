@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using WebApiCrud.Data;
+using WebApiCrud.Repositories;
+using WebApiCrud.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +36,13 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("clave_secreta_super_segura"))
     };
 });
+// Repositories
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+
+// Services
+builder.Services.AddScoped<ProductoService>();
+builder.Services.AddScoped<UsuarioService>();
 
 
 builder.Services.AddControllers();

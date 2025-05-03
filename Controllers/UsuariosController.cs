@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApiCrud.Data;
 using WebApiCrud.Models;
+using WebApiCrud.Services;
 
 namespace WebApiCrud.Controllers
 {
@@ -9,19 +10,19 @@ namespace WebApiCrud.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-        private readonly DataContext _context;
 
-        public UsuariosController(DataContext context)
+         private readonly UsuarioService _service;
+
+        public UsuariosController(UsuarioService service)
         {
-            _context = context;
+            _service = service;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UsuarioDTO>>> GetUsuarios()
         {
-            var usuarios = await _context.Usuarios.ToListAsync();
-
-            var usuariosDTO = usuarios.Select(u => new UsuarioDTO
+            var usuarios = await _service.GetAllAsync();
+            var dtoList = usuarios.Select(u => new UsuarioDTO
             {
                 Nombre = u.Nombre,
                 CorreoElectronico = u.CorreoElectronico,
@@ -29,21 +30,17 @@ namespace WebApiCrud.Controllers
                 Activo = u.Activo
             });
 
-            return Ok(usuariosDTO);
+            return Ok(dtoList);
         }
-
 
         [HttpGet("{id}")]
         public async Task<ActionResult<UsuarioDTO>> GetUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-
+            var usuario = await _service.GetByIdAsync(id);
             if (usuario == null)
-            {
                 return NotFound();
-            }
 
-            var usuarioDTO = new UsuarioDTO
+            var dto = new UsuarioDTO
             {
                 Nombre = usuario.Nombre,
                 CorreoElectronico = usuario.CorreoElectronico,
@@ -51,7 +48,7 @@ namespace WebApiCrud.Controllers
                 Activo = usuario.Activo
             };
 
-            return Ok(usuarioDTO);
+            return Ok(dto);
         }
 
         [HttpPost]
@@ -69,21 +66,17 @@ namespace WebApiCrud.Controllers
                 FechaDeAlta = DateTime.UtcNow
             };
 
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-
+            await _service.AddAsync(usuario);
             return CreatedAtAction(nameof(GetUsuario), new { id = usuario.Id }, null);
         }
 
-
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(int id, UsuarioUpdateDTO dto)
+        public async Task<ActionResult> PutUsuario(int id, UsuarioUpdateDTO dto)
         {
             if (id != dto.Id)
                 return BadRequest("El ID no coincide.");
 
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _service.GetByIdAsync(id);
             if (usuario == null)
                 return NotFound();
 
@@ -91,24 +84,20 @@ namespace WebApiCrud.Controllers
             usuario.CorreoElectronico = dto.CorreoElectronico ?? usuario.CorreoElectronico;
             usuario.Activo = dto.Activo;
 
-            await _context.SaveChangesAsync();
+            await _service.UpdateAsync(usuario);
             return NoContent();
         }
 
-
-
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsuario(int id)
+        public async Task<ActionResult> DeleteUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _service.GetByIdAsync(id);
             if (usuario == null)
-            {
                 return NotFound();
-            }
 
-            _context.Usuarios.Remove(usuario);
-            await _context.SaveChangesAsync();
+            await _service.DeleteAsync(usuario);
             return NoContent();
         }
     }
-}
+    }
+

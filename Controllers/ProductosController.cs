@@ -10,20 +10,18 @@ namespace WebApiCrud.Controllers
     [Route("api/[controller]")]
     public class ProductosController : ControllerBase
     {
-        private readonly ILogger<ProductosController> _logger;
-        private readonly DataContext _context;
+        private readonly ProductoService _service;
 
-        public ProductosController(ILogger<ProductosController> logger, DataContext context)
+        public ProductosController(ProductoService service)
         {
-            _context = context;
-            _logger = logger;
+            _service = service;
         }
 
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductoDTO>>> GetProductos()
         {
-            var productos = await _context.Productos.ToListAsync();
+            var productos = await _service.GetAllAsync();
 
             var productosDTO = productos.Select(p => new ProductoDTO
             {
@@ -41,7 +39,7 @@ namespace WebApiCrud.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ProductoDTO>> GetProducto(int id)
         {
-            var producto = await _context.Productos.FindAsync(id);
+            var producto = await _service.GetByIdAsync(id);
             if (producto == null)
             {
                 return NotFound();
@@ -74,11 +72,11 @@ namespace WebApiCrud.Controllers
                 FechaDeAlta = DateTime.UtcNow
             };
 
-            _context.Productos.Add(producto);
-            await _context.SaveChangesAsync();
-
+            await _service.AddAsync(producto);  
             return CreatedAtAction(nameof(GetProducto), new { id = producto.Id }, null);
+
         }
+
 
 
         [HttpPut("{id}")]
@@ -86,8 +84,8 @@ namespace WebApiCrud.Controllers
         {
             if (id != dto.Id)
                 return BadRequest("El ID no coincide.");
+            var producto = await _service.GetByIdAsync(id);
 
-            var producto = await _context.Productos.FindAsync(id);
             if (producto == null)
                 return NotFound();
 
@@ -96,7 +94,7 @@ namespace WebApiCrud.Controllers
             producto.Precio = dto.Precio;
             producto.Activo = dto.Activo;
 
-            await _context.SaveChangesAsync();
+            await _service.UpdateAsync(producto);
             return NoContent();
         }
 
@@ -105,15 +103,12 @@ namespace WebApiCrud.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteProducto(int id)
         {
-            var producto = await _context.Productos.FindAsync(id);
+            var producto = await _service.GetByIdAsync(id);
             if (producto == null)
             {
                 return NotFound("No se encontró ningún producto con ese ID.");
             }
-
-            _context.Productos.Remove(producto);
-            await _context.SaveChangesAsync();
-
+            await _service.DeleteAsync(producto);
             return NoContent();
         }
     }
